@@ -23,17 +23,18 @@ mod batch;
 ///
 /// ST7789 driver to connect to TFT displays.
 ///
-pub struct ST7789<DI, OUT>
+pub struct ST7789<DI, RST, BL>
 where
     DI: WriteOnlyDataCommand,
-    OUT: OutputPin,
+    RST: OutputPin,
+    BL: OutputPin,
 {
     // Display interface
     di: DI,
     // Reset pin.
-    rst: Option<OUT>,
+    rst: Option<RST>,
     // Backlight pin,
-    bl: Option<OUT>,
+    bl: Option<BL>,
     // Visible size (x, y)
     size_x: u16,
     size_y: u16,
@@ -87,10 +88,11 @@ pub enum Error<PinE> {
     Pin(PinE),
 }
 
-impl<DI, OUT, PinE> ST7789<DI, OUT>
+impl<DI, RST, BL, PinE> ST7789<DI, RST, BL>
 where
     DI: WriteOnlyDataCommand,
-    OUT: OutputPin<Error = PinE>,
+    RST: OutputPin<Error = PinE>,
+    BL: OutputPin<Error = PinE>,
 {
     ///
     /// Creates a new ST7789 driver instance
@@ -103,7 +105,7 @@ where
     /// * `size_x` - x axis resolution of the display in pixels
     /// * `size_y` - y axis resolution of the display in pixels
     ///
-    pub fn new(di: DI, rst: Option<OUT>, bl: Option<OUT>, size_x: u16, size_y: u16) -> Self {
+    pub fn new(di: DI, rst: Option<RST>, bl: Option<BL>, size_x: u16, size_y: u16) -> Self {
         Self {
             di,
             rst,
@@ -264,7 +266,7 @@ where
     /// Release resources allocated to this driver back.
     /// This returns the display interface and the RST pin deconstructing the driver.
     ///
-    pub fn release(self) -> (DI, Option<OUT>, Option<OUT>) {
+    pub fn release(self) -> (DI, Option<RST>, Option<BL>) {
         (self.di, self.rst, self.bl)
     }
 
