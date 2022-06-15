@@ -3,6 +3,7 @@
 ## *unreleased*
 
 * introduced control over the backlight pin and made reset pin optional
+* fix `clear()` on targets with `usize` smaller than `u32` 
 
 ## v0.6
 
