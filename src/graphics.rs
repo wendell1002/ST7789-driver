@@ -115,14 +115,17 @@ where
     where
         Self: Sized,
     {
-        let colors = core::iter::repeat(RawU16::from(color).into_inner()).take(240 * 320); // blank entire HW RAM contents
+        let color16 = RawU16::from(color).into_inner();
+        const DIM1: u16 = 240;
+        const DIM2: u16 = 320;
+        let colors = (0..(DIM1 as u32 * DIM2 as u32)).map(|_| color16); // blank entire HW RAM contents
 
         match self.orientation {
             Orientation::Portrait | Orientation::PortraitSwapped => {
-                self.set_pixels(0, 0, 239, 319, colors)
+                self.set_pixels(0, 0, DIM1 - 1, DIM2 - 1, colors)
             }
             Orientation::Landscape | Orientation::LandscapeSwapped => {
-                self.set_pixels(0, 0, 319, 239, colors)
+                self.set_pixels(0, 0, DIM2 - 1, DIM1 - 1, colors)
             }
         }
     }
