@@ -1,9 +1,10 @@
 # CHANGELOG
 
-## *unreleased*
+## v0.7.0
 
 * introduced control over the backlight pin and made reset pin optional
 * fix `clear()` on targets with `usize` smaller than `u32` 
+* fix negative pixel coordinate overflow bug in the `batch` module
 
 ## v0.6
 
