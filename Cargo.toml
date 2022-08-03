@@ -9,7 +9,7 @@ repository = "https://github.com/almindor/st7789"
 keywords = ["embedded-hal-driver", "st7789", "display"]
 readme = "README.md"
 documentation = "https://docs.rs/st7789"
-rust-version = "1.42"
+rust-version = "1.51"
 
 [dependencies]
 display-interface = "0.4"
