@@ -11,10 +11,11 @@ use embedded_hal::digital::v2::OutputPin;
 use crate::{Error, Orientation, ST7789};
 use display_interface::WriteOnlyDataCommand;
 
-impl<DI, RST, PinE> ST7789<DI, RST>
+impl<DI, RST, BL, PinE> ST7789<DI, RST, BL>
 where
     DI: WriteOnlyDataCommand,
     RST: OutputPin<Error = PinE>,
+    BL: OutputPin<Error = PinE>,
 {
     /// Returns the bounding box for the entire framebuffer.
     fn framebuffer_bounding_box(&self) -> Rectangle {
@@ -27,10 +28,11 @@ where
     }
 }
 
-impl<DI, RST, PinE> DrawTarget for ST7789<DI, RST>
+impl<DI, RST, BL, PinE> DrawTarget for ST7789<DI, RST, BL>
 where
     DI: WriteOnlyDataCommand,
     RST: OutputPin<Error = PinE>,
+    BL: OutputPin<Error = PinE>,
 {
     type Error = Error<PinE>;
     type Color = Rgb565;
@@ -115,23 +117,27 @@ where
     where
         Self: Sized,
     {
-        let colors = core::iter::repeat(RawU16::from(color).into_inner()).take(240 * 320); // blank entire HW RAM contents
+        let color16 = RawU16::from(color).into_inner();
+        const DIM1: u16 = 240;
+        const DIM2: u16 = 320;
+        let colors = (0..(DIM1 as u32 * DIM2 as u32)).map(|_| color16); // blank entire HW RAM contents
 
         match self.orientation {
             Orientation::Portrait | Orientation::PortraitSwapped => {
-                self.set_pixels(0, 0, 239, 319, colors)
+                self.set_pixels(0, 0, DIM1 - 1, DIM2 - 1, colors)
             }
             Orientation::Landscape | Orientation::LandscapeSwapped => {
-                self.set_pixels(0, 0, 319, 239, colors)
+                self.set_pixels(0, 0, DIM2 - 1, DIM1 - 1, colors)
             }
         }
     }
 }
 
-impl<DI, RST, PinE> OriginDimensions for ST7789<DI, RST>
+impl<DI, RST, BL, PinE> OriginDimensions for ST7789<DI, RST, BL>
 where
     DI: WriteOnlyDataCommand,
     RST: OutputPin<Error = PinE>,
+    BL: OutputPin<Error = PinE>,
 {
     fn size(&self) -> Size {
         Size::new(self.size_x.into(), self.size_y.into()) // visible area, not RAM-pixel size

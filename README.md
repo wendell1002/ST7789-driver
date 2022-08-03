@@ -13,7 +13,6 @@ These features are enabled by default:
 
 * `graphics` - embedded-graphics support: pulls in [embedded-graphics](https://crates.io/crates/embedded-graphics) dependency
 * `batch` - batch-drawing optimization: pulls in [heapless](https://crates.io/crates/heapless) dependency and allocates 300 bytes for frame buffer in the driver
-* `buffer` - use a 128 byte buffer for SPI data transfers
 
 ## Status
 

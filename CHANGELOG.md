@@ -1,9 +1,15 @@
 # CHANGELOG
 
+## *unreleased*
+
+* introduced control over the backlight pin and made reset pin optional
+* fix `clear()` on targets with `usize` smaller than `u32` 
+
 ## v0.6
 
-* `v0.6.0` - update `embedded-graphics` support to `v0.7`
+* `v0.6.1` - remove unused `buffer` feature
 * `v0.6.1` - optimize `fill_solid` and add tearing effect support
+* `v0.6.0` - update `embedded-graphics` support to `v0.7`
 
 ## v0.5
 

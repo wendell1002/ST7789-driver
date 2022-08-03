@@ -23,15 +23,18 @@ mod batch;
 ///
 /// ST7789 driver to connect to TFT displays.
 ///
-pub struct ST7789<DI, RST>
+pub struct ST7789<DI, RST, BL>
 where
     DI: WriteOnlyDataCommand,
     RST: OutputPin,
+    BL: OutputPin,
 {
     // Display interface
     di: DI,
     // Reset pin.
-    rst: RST,
+    rst: Option<RST>,
+    // Backlight pin,
+    bl: Option<BL>,
     // Visible size (x, y)
     size_x: u16,
     size_y: u16,
@@ -70,6 +73,12 @@ pub enum TearingEffect {
     HorizontalAndVertical,
 }
 
+#[derive(Copy, Clone, Debug)]
+pub enum BacklightState {
+    On,
+    Off,
+}
+
 ///
 /// An error holding its source (pins or SPI)
 ///
@@ -79,10 +88,11 @@ pub enum Error<PinE> {
     Pin(PinE),
 }
 
-impl<DI, RST, PinE> ST7789<DI, RST>
+impl<DI, RST, BL, PinE> ST7789<DI, RST, BL>
 where
     DI: WriteOnlyDataCommand,
     RST: OutputPin<Error = PinE>,
+    BL: OutputPin<Error = PinE>,
 {
     ///
     /// Creates a new ST7789 driver instance
@@ -91,13 +101,15 @@ where
     ///
     /// * `di` - a display interface for talking with the display
     /// * `rst` - display hard reset pin
+    /// * `bl` - backlight pin
     /// * `size_x` - x axis resolution of the display in pixels
     /// * `size_y` - y axis resolution of the display in pixels
     ///
-    pub fn new(di: DI, rst: RST, size_x: u16, size_y: u16) -> Self {
+    pub fn new(di: DI, rst: Option<RST>, bl: Option<BL>, size_x: u16, size_y: u16) -> Self {
         Self {
             di,
             rst,
+            bl,
             size_x,
             size_y,
             orientation: Orientation::default(),
@@ -113,6 +125,12 @@ where
     ///
     pub fn init(&mut self, delay_source: &mut impl DelayUs<u32>) -> Result<(), Error<PinE>> {
         self.hard_reset(delay_source)?;
+        if let Some(bl) = self.bl.as_mut() {
+            bl.set_low().map_err(Error::Pin)?;
+            delay_source.delay_us(10_000);
+            bl.set_high().map_err(Error::Pin)?;
+        }
+
         self.write_command(Instruction::SWRESET)?; // reset display
         delay_source.delay_us(150_000);
         self.write_command(Instruction::SLPOUT)?; // turn off sleep
@@ -141,13 +159,30 @@ where
     /// * `delay_source` - mutable reference to a delay provider
     ///
     pub fn hard_reset(&mut self, delay_source: &mut impl DelayUs<u32>) -> Result<(), Error<PinE>> {
-        self.rst.set_high().map_err(Error::Pin)?;
-        delay_source.delay_us(10); // ensure the pin change will get registered
-        self.rst.set_low().map_err(Error::Pin)?;
-        delay_source.delay_us(10); // ensure the pin change will get registered
-        self.rst.set_high().map_err(Error::Pin)?;
-        delay_source.delay_us(10); // ensure the pin change will get registered
+        if let Some(rst) = self.rst.as_mut() {
+            rst.set_high().map_err(Error::Pin)?;
+            delay_source.delay_us(10); // ensure the pin change will get registered
+            rst.set_low().map_err(Error::Pin)?;
+            delay_source.delay_us(10); // ensure the pin change will get registered
+            rst.set_high().map_err(Error::Pin)?;
+            delay_source.delay_us(10); // ensure the pin change will get registered
+        }
 
+        Ok(())
+    }
+
+    pub fn set_backlight(
+        &mut self,
+        state: BacklightState,
+        delay_source: &mut impl DelayUs<u32>,
+    ) -> Result<(), Error<PinE>> {
+        if let Some(bl) = self.bl.as_mut() {
+            match state {
+                BacklightState::On => bl.set_high().map_err(Error::Pin)?,
+                BacklightState::Off => bl.set_low().map_err(Error::Pin)?,
+            }
+            delay_source.delay_us(10); // ensure the pin change will get registered
+        }
         Ok(())
     }
 
@@ -231,8 +266,8 @@ where
     /// Release resources allocated to this driver back.
     /// This returns the display interface and the RST pin deconstructing the driver.
     ///
-    pub fn release(self) -> (DI, RST) {
-        (self.di, self.rst)
+    pub fn release(self) -> (DI, Option<RST>, Option<BL>) {
+        (self.di, self.rst, self.bl)
     }
 
     fn write_command(&mut self, command: Instruction) -> Result<(), Error<PinE>> {
