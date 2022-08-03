@@ -11,8 +11,8 @@ jobs:
     continue-on-error: ${{ matrix.experimental || false }}
     strategy:
       matrix:
-        # All generated code should be running on stable now, MRSV is 1.51.0
-        rust: [nightly, stable, 1.51.0]
+        # All generated code should be running on stable now, MRSV is 1.42.0
+        rust: [nightly, stable, 1.56.0]
 
         include:
           # Nightly is only for reference and allowed to fail
@@ -27,11 +27,10 @@ jobs:
           toolchain: ${{ matrix.rust }}
           override: true
       - name: Install all Rust targets for ${{ matrix.rust }}
-        run: rustup target install --toolchain=${{ matrix.rust }} x86_64-unknown-linux-gnu riscv32imac-unknown-none-elf riscv64imac-unknown-none-elf riscv64gc-unknown-none-elf
-      - name: Run CI script for riscv32imac-unknown-none-elf under ${{ matrix.rust }}
+        run: rustup target install --toolchain=${{ matrix.rust }} x86_64-unknown-linux-gnu
+      - name: Run CI script for x86_64-unknown-linux-gnu
         run: |
-          cargo check --target riscv32imac-unknown-none-elf
-          cargo check --target riscv32imac-unknown-none-elf --features g002
+          cargo check
 
   # On macOS and Windows, we at least make sure that the crate builds and links.
   build-other:
@@ -52,4 +51,3 @@ jobs:
       - name: Build crate for host OS
         run: |
           cargo build
-          cargo build --features g002
