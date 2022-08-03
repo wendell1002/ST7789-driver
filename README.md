@@ -7,6 +7,10 @@ This is a Rust driver library for ST7789 displays using embedded_graphics, embed
 
 [![ferris-demo](http://objdump.katona.me/ferris_fast.png)](http://objdump.katona.me/ferris_fast.mp4)
 
+## **Deprecation warning**
+
+`v0.7` of this crate is the last release. [mipidsi](https://github.com/almindor/mipidsi) is a new generic driver that contains ST7789 support and should serve as a drop in replacement for this driver.
+
 ## Features
 
 These features are enabled by default:
