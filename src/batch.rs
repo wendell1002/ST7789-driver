@@ -190,6 +190,9 @@ impl<P: Iterator<Item = Pixel<Rgb565>>> Iterator for RowIterator<P> {
                 }
                 Some(Pixel(coord, color)) => {
                     //  If there is a pixel...
+                    if coord.x < 0 || coord.y < 0 {
+                        continue; // if we do not clip this here, the library panics later on
+                    }
                     let x = coord.x as u16;
                     let y = coord.y as u16;
                     let color = RawU16::from(color).into_inner();
