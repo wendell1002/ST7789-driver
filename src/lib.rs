@@ -38,10 +38,10 @@ where
     // Visible size (x, y)
     size_x: u16,
     size_y: u16,
-    // Current orientation
-    orientation: Orientation,
     offset_x: u16,
     offset_y: u16,
+    // Current orientation
+    orientation: Orientation,
 }
 
 ///
@@ -116,6 +116,7 @@ where
             size_y,
             offset_x: 0,
             offset_y: 0,
+
             orientation: Orientation::default(),
         }
     }
@@ -299,21 +300,19 @@ where
         ex: u16,
         ey: u16,
     ) -> Result<(), Error<PinE>> {
-        let (sx, sy, ex, ey) = match self.orientation() {
-            Orientation::Landscape | Orientation::LandscapeSwapped => (
-                sx + self.offset_x,
-                sy + self.offset_y,
-                ex + self.offset_x,
-                ey + self.offset_y,
-            ),
-            Orientation::Portrait | Orientation::PortraitSwapped => (
-                sy + self.offset_x,
-                sx + self.offset_y,
-                ey + self.offset_x,
-                ex + self.offset_y,
-            ),
-        };
+        let mut offset = (self.offset_x, self.offset_y);
+        // let mut offset: (i16, i16) = (self.offset_x as i16, self.offset_y as i16);
 
+        match self.orientation {
+            Orientation::Portrait | Orientation::PortraitSwapped => {
+                offset = (offset.0, offset.1);
+            }
+            Orientation::Landscape | Orientation::LandscapeSwapped => {
+                // offset = (offset.0, offset.1);
+                offset = (offset.1, offset.0);
+            }
+        }
+        let (sx, sy, ex, ey) = (sx + offset.0, sy + offset.1, ex + offset.0, ey + offset.1);
         self.write_command(Instruction::CASET)?;
         self.write_data(&sx.to_be_bytes())?;
         self.write_data(&ex.to_be_bytes())?;
