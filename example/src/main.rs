@@ -7,8 +7,8 @@ use display_interface_spi::{SPIInterface, SPIInterfaceNoCS};
 
 use embedded_graphics::{
     mono_font::{ascii::FONT_9X15, MonoTextStyleBuilder},
-    prelude::{Point, Primitive},
-    primitives::{Line, PrimitiveStyle, Triangle},
+    prelude::{Point, Primitive, Size},
+    primitives::{Line, PrimitiveStyle, Rectangle, Triangle},
     text::{Baseline, Text},
 };
 use embedded_graphics_core::{
@@ -91,23 +91,22 @@ fn main() -> ! {
     // initialize
     display.init(&mut delay).unwrap();
     // set default orientation
-    display
-        .set_orientation(Orientation::PortraitSwapped)
-        .unwrap();
+    display.set_orientation(Orientation::Landscape).unwrap();
     display.clear(Rgb565::YELLOW).unwrap();
     let text_style = MonoTextStyleBuilder::new()
         .font(&FONT_9X15)
         .text_color(Rgb565::BLUE)
         .build();
 
-    Text::with_baseline(
-        "Hello world!33333333333 ",
-        Point::new(0, 0),
-        text_style,
-        Baseline::Top,
-    )
-    .draw(&mut display)
-    .unwrap();
+    Text::with_baseline("Hello world! ", Point::new(0, 0), text_style, Baseline::Top)
+        .draw(&mut display)
+        .unwrap();
+
+    let fill = PrimitiveStyle::with_stroke(Rgb565::BLUE, 5);
+    Rectangle::new(Point::new(0, 0), Size::new(240, 135))
+        .into_styled(fill)
+        .draw(&mut display)
+        .unwrap();
 
     loop {
         delay.delay_ms(500_u16);
