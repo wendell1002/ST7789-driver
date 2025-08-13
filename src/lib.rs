@@ -299,12 +299,20 @@ where
         ex: u16,
         ey: u16,
     ) -> Result<(), Error<PinE>> {
-        let (sx, sy, ex, ey) = (
-            sx + self.offset_x,
-            sy + self.offset_y,
-            ex + self.offset_x,
-            ey + self.offset_y,
-        );
+        let (sx, sy, ex, ey) = match self.orientation() {
+            Orientation::Landscape | Orientation::LandscapeSwapped => (
+                sx + self.offset_x,
+                sy + self.offset_y,
+                ex + self.offset_x,
+                ey + self.offset_y,
+            ),
+            Orientation::Portrait | Orientation::PortraitSwapped => (
+                sy + self.offset_x,
+                sx + self.offset_y,
+                ey + self.offset_x,
+                ex + self.offset_y,
+            ),
+        };
 
         self.write_command(Instruction::CASET)?;
         self.write_data(&sx.to_be_bytes())?;
