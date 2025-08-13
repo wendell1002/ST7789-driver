@@ -40,6 +40,8 @@ where
     size_y: u16,
     // Current orientation
     orientation: Orientation,
+    offset_x: u16,
+    offset_y: u16,
 }
 
 ///
@@ -112,8 +114,14 @@ where
             bl,
             size_x,
             size_y,
+            offset_x: 0,
+            offset_y: 0,
             orientation: Orientation::default(),
         }
+    }
+    pub fn set_offset(&mut self, offset_x: u16, offset_y: u16) {
+        self.offset_x = offset_x;
+        self.offset_y = offset_y;
     }
 
     ///
@@ -291,6 +299,13 @@ where
         ex: u16,
         ey: u16,
     ) -> Result<(), Error<PinE>> {
+        let (sx, sy, ex, ey) = (
+            sx + self.offset_x,
+            sy + self.offset_y,
+            ex + self.offset_x,
+            ey + self.offset_y,
+        );
+
         self.write_command(Instruction::CASET)?;
         self.write_data(&sx.to_be_bytes())?;
         self.write_data(&ex.to_be_bytes())?;
